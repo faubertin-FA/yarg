@@ -28,7 +28,11 @@ import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,7 +66,7 @@ import java.util.regex.Pattern;
  * We get json string from parameter param1 and select all "book" objects from the "store" object
  */
 public class JsonDataLoader extends AbstractDataLoader {
-    protected Pattern parameterPattern = Pattern.compile("parameter=([A-z0-9_]+)");
+    protected Pattern parameterPattern = Pattern.compile("parameter=([A-z0-9_.]+)");
 
     @Override
     public List<Map<String, Object>> loadData(ReportQuery reportQuery, BandData parentBand, Map<String, Object> reportParams) {
@@ -98,7 +102,8 @@ public class JsonDataLoader extends AbstractDataLoader {
                 matcher = AbstractDbDataLoader.COMMON_PARAM_PATTERN.matcher(script);
                 while (matcher.find()) {
                     String parameter = matcher.group(1);
-                    script = matcher.replaceAll(String.valueOf(currentParams.get(parameter)));
+                    script = matcher.replaceFirst(String.valueOf(currentParams.get(parameter)));
+                    matcher = AbstractDbDataLoader.COMMON_PARAM_PATTERN.matcher(script);
                 }
 
                 try {

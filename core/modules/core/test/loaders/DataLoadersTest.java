@@ -5,6 +5,7 @@ import com.haulmont.yarg.loaders.impl.JsonDataLoader;
 import com.haulmont.yarg.loaders.impl.SqlDataLoader;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.BandOrientation;
+import com.haulmont.yarg.structure.ReportQuery;
 import com.haulmont.yarg.structure.impl.ReportQueryImpl;
 import com.haulmont.yarg.util.groovy.DefaultScriptingImpl;
 import junit.framework.Assert;
@@ -12,7 +13,11 @@ import org.junit.Test;
 import utils.TestDatabase;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author degtyarjov
@@ -94,7 +99,7 @@ public class DataLoadersTest {
         printResult(result);
     }
 
-//    @Test todo
+    //    @Test todo
     public void testLinksInQueries() throws Exception {
 
     }
@@ -161,5 +166,58 @@ public class DataLoadersTest {
         reportQuery = new ReportQueryImpl("", "parameter=param1 $.some.not.existing", "json", null, null);
         maps = jsonDataLoader.loadData(reportQuery, rootBand, params);
         Assert.assertEquals(0, maps.size());
+    }
+
+    @Test
+    public void testJsonVariableSubstitution() throws Exception {
+        JsonDataLoader jsonDataLoader = new JsonDataLoader();
+        BandData rootBand = new BandData("band1", null, BandOrientation.HORIZONTAL);
+        rootBand.setData(new HashMap<String, Object>());
+        rootBand.getData().put("categoryCriterion1", "fiction");
+        rootBand.getData().put("categoryCriterion2", "thriller");
+
+        String json = "{ \"store\": {\n" +
+                "    \"book\": [ \n" +
+                "      { \"category\": \"reference\",\n" +
+                "        \"author\": \"Nigel Rees\",\n" +
+                "        \"title\": \"Sayings of the Century\",\n" +
+                "        \"price\": 8.95\n" +
+                "      },\n" +
+                "      { \"category\": \"fiction\",\n" +
+                "        \"author\": \"Evelyn Waugh\",\n" +
+                "        \"title\": \"Sword of Honour\",\n" +
+                "        \"price\": 12.99,\n" +
+                "        \"isbn\": \"0-553-21311-3\"\n" +
+                "      },\n" +
+                "      { \"category\": \"thriller\",\n" +
+                "        \"author\": \"Stieg Larsson\",\n" +
+                "        \"title\": \"The Girl with the Dragon Tattoo\",\n" +
+                "        \"price\": 15.99,\n" +
+                "        \"isbn\": \"978-1-84724-253-2\"\n" +
+                "      },\n" +
+                "    ],\n" +
+                "    \"bicycle\": {\n" +
+                "      \"color\": \"red\",\n" +
+                "      \"price\": 19.95\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("param1", json);
+
+        ReportQuery reportQuery = new ReportQueryImpl("", "parameter=param1 $.store.book[?(@.category=='${band1.categoryCriterion1}' || @.category=='${band1.categoryCriterion2}')]", "json", null, null);
+        List<Map<String, Object>> maps = jsonDataLoader.loadData(reportQuery, rootBand, params);
+
+        Assert.assertEquals("Must match 2 books : Sword of Honour and The Girl with the Dragon Tattoo", 2, maps.size());
+
+        Map<String, Object> map = maps.get(0);
+        Assert.assertEquals("fiction", map.get("category"));
+        Assert.assertEquals("Sword of Honour", map.get("title"));
+
+        map = maps.get(1);
+        Assert.assertEquals("thriller", map.get("category"));
+        Assert.assertEquals("The Girl with the Dragon Tattoo", map.get("title"));
+
     }
 }
