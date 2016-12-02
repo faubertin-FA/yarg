@@ -15,20 +15,23 @@
  */
 
 /**
- *
  * @author degtyarjov
  * @version $Id$
  */
 package com.haulmont.yarg.loaders.impl;
 
-import com.haulmont.yarg.loaders.ReportFieldsConverter;
 import com.haulmont.yarg.loaders.ReportDataLoader;
+import com.haulmont.yarg.loaders.ReportFieldsConverter;
 import com.haulmont.yarg.loaders.ReportParametersConverter;
 import com.haulmont.yarg.structure.BandData;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public abstract class AbstractDataLoader implements ReportDataLoader {
+
+    public static final Pattern COMMON_PARAM_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
+
     protected ReportParametersConverter parametersConverter = null;
     protected ReportFieldsConverter fieldsConverter = null;
 
@@ -74,5 +77,6 @@ public abstract class AbstractDataLoader implements ReportDataLoader {
             }
         }
     }
+
 }
 

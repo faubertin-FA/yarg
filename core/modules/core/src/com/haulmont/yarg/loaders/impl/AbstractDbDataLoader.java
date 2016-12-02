@@ -32,8 +32,6 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractDbDataLoader extends AbstractDataLoader {
 
-    public static final Pattern COMMON_PARAM_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
-
     protected List<Map<String, Object>> fillOutputData(List resList, List<OutputValue> parametersNames) {
         List<Map<String, Object>> outputData = new ArrayList<Map<String, Object>>();
 

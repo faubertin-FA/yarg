@@ -30,7 +30,7 @@ public class JsonMap implements Map<String, Object> {
 
     @Override
     public boolean containsKey(Object key) {
-        return instance.containsKey(key);
+        return instance.containsKey(key) || getValue(instance, key.toString()) != null;
     }
 
     @Override
