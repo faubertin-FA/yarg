@@ -21,7 +21,11 @@ import smoketest.ConstantMap;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class XlsxIntegrationTest {
     @Test
@@ -98,7 +102,7 @@ public class XlsxIntegrationTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/integration/result.xlsx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/integration/test.xlsx", "./modules/core/test/integration/test.xlsx", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/integration/test.xlsx", "./modules/core/test/integration/test.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -141,7 +145,7 @@ public class XlsxIntegrationTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/integration/result-align.xlsx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/integration/test.xlsx", "./modules/core/test/integration/test-align.xlsx", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/integration/test.xlsx", "./modules/core/test/integration/test-align.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -201,7 +205,7 @@ public class XlsxIntegrationTest {
         FileOutputStream outputStream = new FileOutputStream("./result/integration/result-crosstab.xlsx");
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/integration/test-crosstab.xlsx", "./modules/core/test/integration/test-crosstab.xlsx", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/integration/test-crosstab.xlsx", "./modules/core/test/integration/test-crosstab.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -228,7 +232,7 @@ public class XlsxIntegrationTest {
         FileOutputStream outputStream = new FileOutputStream("./result/integration/result-formats.xlsx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsx", root,
                 new ReportTemplateImpl("", "./modules/core/test/integration/test-formats.xlsx",
-                        "./modules/core/test/integration/test-formats.xlsx", ReportOutputType.xlsx), outputStream));
+                        "./modules/core/test/integration/test-formats.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -286,7 +290,7 @@ public class XlsxIntegrationTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/integration/result-formulas.xlsx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/integration/test-formulas.xlsx", "./modules/core/test/integration/test-formulas.xlsx", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/integration/test-formulas.xlsx", "./modules/core/test/integration/test-formulas.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -337,7 +341,7 @@ public class XlsxIntegrationTest {
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsx", root,
                 new ReportTemplateImpl("", "./modules/core/test/integration/test-horizontal-after-vertical.xlsx",
                         "./modules/core/test/integration/test-horizontal-after-vertical.xlsx",
-                        ReportOutputType.xlsx), outputStream));
+                        ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);

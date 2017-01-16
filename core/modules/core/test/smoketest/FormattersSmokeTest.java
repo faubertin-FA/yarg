@@ -47,7 +47,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/result.xls");
 
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xls", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xls", "./modules/core/test/smoketest/test.xls", ReportOutputType.xls), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xls", "./modules/core/test/smoketest/test.xls", ReportOutputType.xls), outputStream, false));
 
         formatter.renderDocument();
 
@@ -63,7 +63,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("xls", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xls", "./modules/core/test/smoketest/test.xls", ReportOutputType.pdf), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xls", "./modules/core/test/smoketest/test.xls", ReportOutputType.pdf), outputStream, false));
 
         formatter.renderDocument();
 
@@ -83,7 +83,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/result.docx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.docx", "./modules/core/test/smoketest/test.docx", ReportOutputType.docx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.docx", "./modules/core/test/smoketest/test.docx", ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -101,7 +101,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("docx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.docx", "./modules/core/test/smoketest/test.docx", ReportOutputType.pdf), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.docx", "./modules/core/test/smoketest/test.docx", ReportOutputType.pdf), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -119,7 +119,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/result_docx.html");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.docx", "./modules/core/test/smoketest/test.docx", ReportOutputType.html), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.docx", "./modules/core/test/smoketest/test.docx", ReportOutputType.html), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -139,7 +139,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("odt", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.odt", "./modules/core/test/smoketest/test.odt", ReportOutputType.doc), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.odt", "./modules/core/test/smoketest/test.odt", ReportOutputType.doc), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -159,7 +159,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("doc", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -193,7 +193,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/result.xlsx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xlsx", "./modules/core/test/smoketest/test.xlsx", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xlsx", "./modules/core/test/smoketest/test.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -227,7 +227,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/result.xlsm");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsm", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xlsx", "./modules/core/test/smoketest/test.xlsm", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xlsx", "./modules/core/test/smoketest/test.xlsm", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -263,7 +263,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xlsx", "./modules/core/test/smoketest/test.xlsx", ReportOutputType.pdf), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/test.xlsx", "./modules/core/test/smoketest/test.xlsx", ReportOutputType.pdf), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -288,7 +288,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/result.html");
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("html", root,
-                new ReportTemplateImpl("", "test.ftl", "./modules/core/test/smoketest/test.ftl", ReportOutputType.html), outputStream));
+                new ReportTemplateImpl("", "test.ftl", "./modules/core/test/smoketest/test.ftl", ReportOutputType.html), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -303,7 +303,7 @@ public class FormattersSmokeTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/result.pdf");
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("html", root,
-                new ReportTemplateImpl("", "test.ftl", "./modules/core/test/smoketest/test.ftl", ReportOutputType.pdf), outputStream));
+                new ReportTemplateImpl("", "test.ftl", "./modules/core/test/smoketest/test.ftl", ReportOutputType.pdf), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);

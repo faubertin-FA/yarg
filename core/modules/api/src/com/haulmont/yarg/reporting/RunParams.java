@@ -15,7 +15,6 @@
  */
 
 /**
- *
  * @author degtyarjov
  * @version $Id$
  */
@@ -35,6 +34,7 @@ public class RunParams {
     protected Report report;
     protected ReportTemplate reportTemplate;
     protected Map<String, Object> params = new HashMap<String, Object>();
+    protected boolean acceptUnknownBand = false;
 
     public RunParams(Report report) {
         this.report = report;
@@ -75,6 +75,11 @@ public class RunParams {
      */
     public RunParams param(String key, Object value) {
         params.put(key, value);
+        return this;
+    }
+
+    public RunParams acceptUnknownBand() {
+        this.acceptUnknownBand = true;
         return this;
     }
 }

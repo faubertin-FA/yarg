@@ -15,7 +15,6 @@
  */
 
 /**
- *
  * @author degtyarjov
  * @version $Id$
  */
@@ -28,7 +27,12 @@ import com.haulmont.yarg.formatters.ReportFormatter;
 import com.haulmont.yarg.formatters.factory.FormatterFactoryInput;
 import com.haulmont.yarg.formatters.factory.ReportFormatterFactory;
 import com.haulmont.yarg.loaders.factory.ReportLoaderFactory;
-import com.haulmont.yarg.structure.*;
+import com.haulmont.yarg.structure.BandData;
+import com.haulmont.yarg.structure.Report;
+import com.haulmont.yarg.structure.ReportOutputType;
+import com.haulmont.yarg.structure.ReportParameter;
+import com.haulmont.yarg.structure.ReportParameterWithDefaultValue;
+import com.haulmont.yarg.structure.ReportTemplate;
 import com.haulmont.yarg.util.converter.ObjectToStringConverter;
 import com.haulmont.yarg.util.converter.ObjectToStringConverterImpl;
 import org.apache.commons.io.IOUtils;
@@ -79,18 +83,18 @@ public class Reporting implements ReportingAPI {
 
     @Override
     public ReportOutputDocument runReport(RunParams runParams, OutputStream outputStream) {
-        return runReport(runParams.report, runParams.reportTemplate, runParams.params, outputStream);
+        return runReport(runParams.report, runParams.reportTemplate, runParams.params, outputStream, runParams.acceptUnknownBand);
     }
 
     @Override
     public ReportOutputDocument runReport(RunParams runParams) {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
-        ReportOutputDocument reportOutputDocument = runReport(runParams.report, runParams.reportTemplate, runParams.params, result);
+        ReportOutputDocument reportOutputDocument = runReport(runParams.report, runParams.reportTemplate, runParams.params, result, runParams.acceptUnknownBand);
         reportOutputDocument.setContent(result.toByteArray());
         return reportOutputDocument;
     }
 
-    protected ReportOutputDocument runReport(Report report, ReportTemplate reportTemplate, Map<String, Object> params, OutputStream outputStream) {
+    protected ReportOutputDocument runReport(Report report, ReportTemplate reportTemplate, Map<String, Object> params, OutputStream outputStream, boolean acceptUnknownBand) {
         try {
             Preconditions.checkNotNull(report, "\"report\" parameter can not be null");
             Preconditions.checkNotNull(reportTemplate, "\"reportTemplate\" can not be null");
@@ -101,7 +105,7 @@ public class Reporting implements ReportingAPI {
             logReport("Started report [%s] with parameters [%s]", report, handledParams);
 
             BandData rootBand = loadBandData(report, handledParams);
-            generateReport(report, reportTemplate, outputStream, handledParams, rootBand);
+            generateReport(report, reportTemplate, outputStream, handledParams, rootBand, acceptUnknownBand);
 
             logReport("Finished report [%s] with parameters [%s]", report, handledParams);
 
@@ -118,7 +122,7 @@ public class Reporting implements ReportingAPI {
         }
     }
 
-    protected void generateReport(Report report, ReportTemplate reportTemplate, OutputStream outputStream, Map<String, Object> handledParams, BandData rootBand) {
+    protected void generateReport(Report report, ReportTemplate reportTemplate, OutputStream outputStream, Map<String, Object> handledParams, BandData rootBand, boolean acceptUnknownBand) {
         String extension = StringUtils.substringAfterLast(reportTemplate.getDocumentName(), ".");
         if (reportTemplate.isCustom()) {
             try {
@@ -128,7 +132,7 @@ public class Reporting implements ReportingAPI {
                 throw new ReportingException(format("An error occurred while processing custom template [%s].", reportTemplate.getDocumentName()), e);
             }
         } else {
-            FormatterFactoryInput factoryInput = new FormatterFactoryInput(extension, rootBand, reportTemplate, outputStream);
+            FormatterFactoryInput factoryInput = new FormatterFactoryInput(extension, rootBand, reportTemplate, outputStream, acceptUnknownBand);
             ReportFormatter formatter = formatterFactory.createFormatter(factoryInput);
             formatter.renderDocument();
         }

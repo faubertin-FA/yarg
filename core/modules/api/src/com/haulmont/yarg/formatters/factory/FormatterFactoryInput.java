@@ -15,7 +15,6 @@
  */
 
 /**
- *
  * @author degtyarjov
  * @version $Id$
  */
@@ -36,8 +35,9 @@ public class FormatterFactoryInput {
     protected final BandData rootBand;
     protected final ReportTemplate reportTemplate;
     protected final OutputStream outputStream;
+    protected final boolean acceptUnknownBand;
 
-    public FormatterFactoryInput(String templateExtension, BandData rootBand, ReportTemplate reportTemplate, OutputStream outputStream) {
+    public FormatterFactoryInput(String templateExtension, BandData rootBand, ReportTemplate reportTemplate, OutputStream outputStream, boolean acceptUnknownBand) {
         if (templateExtension == null) {
             throw new NullPointerException("templateExtension can not be null");
         }
@@ -50,6 +50,7 @@ public class FormatterFactoryInput {
         this.rootBand = rootBand;
         this.reportTemplate = reportTemplate;
         this.outputStream = outputStream;
+        this.acceptUnknownBand = acceptUnknownBand;
     }
 
     public String getTemplateExtension() {
@@ -66,5 +67,9 @@ public class FormatterFactoryInput {
 
     public OutputStream getOutputStream() {
         return outputStream;
+    }
+
+    public boolean isAcceptUnknownBand() {
+        return acceptUnknownBand;
     }
 }
