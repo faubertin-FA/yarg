@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
  * @author degtyarjov
  * @version $Id$
  */
-public class DocSpecificTest extends AbstractFormatSpecificTest{
+public class DocSpecificTest extends AbstractFormatSpecificTest {
     @Test
     public void testTableOdt() throws Exception {
         BandData root = new BandData("Root");
@@ -43,7 +43,7 @@ public class DocSpecificTest extends AbstractFormatSpecificTest{
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("odt", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/table.odt", "./modules/core/test/smoketest/table.odt", ReportOutputType.doc), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/table.odt", "./modules/core/test/smoketest/table.odt", ReportOutputType.doc), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -90,7 +90,7 @@ public class DocSpecificTest extends AbstractFormatSpecificTest{
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("odt", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/colontitules.odt", "./modules/core/test/smoketest/colontitules.odt", ReportOutputType.doc), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/colontitules.odt", "./modules/core/test/smoketest/colontitules.odt", ReportOutputType.doc), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -117,7 +117,7 @@ public class DocSpecificTest extends AbstractFormatSpecificTest{
                     footer.addChild(footerChild);
                     FileOutputStream outputStream = new FileOutputStream("./result/smoke/result_parallel1.doc");
                     ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("doc", root,
-                            new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream));
+                            new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream, false));
                     formatter.renderDocument();
 
                     IOUtils.closeQuietly(outputStream);
@@ -142,7 +142,7 @@ public class DocSpecificTest extends AbstractFormatSpecificTest{
 
                     FileOutputStream outputStream = new FileOutputStream("./result/smoke/result_parallel2.doc");
                     ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("doc", root,
-                            new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream));
+                            new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream, false));
                     formatter.renderDocument();
 
                     IOUtils.closeQuietly(outputStream);
@@ -167,7 +167,7 @@ public class DocSpecificTest extends AbstractFormatSpecificTest{
 
                     FileOutputStream outputStream = new FileOutputStream("./result/smoke/result_parallel3.doc");
                     ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("doc", root,
-                            new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream));
+                            new ReportTemplateImpl("", "./modules/core/test/smoketest/test.doc", "./modules/core/test/smoketest/test.doc", ReportOutputType.doc), outputStream, false));
                     formatter.renderDocument();
 
                     IOUtils.closeQuietly(outputStream);

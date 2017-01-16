@@ -64,7 +64,7 @@ public class XlsxFormulaUpdateTest {
     @Test
     public void testFormulaShifts() throws Exception {
         XlsxFormatter xlsxFormatter = new XlsxFormatter(
-                new FormatterFactoryInput("xls", new BandData(""), reportTemplate, null));
+                new FormatterFactoryInput("xls", new BandData(""), reportTemplate, null, false));
 
         Cell cellWithFormula = cellWithFormula("SUM(A9:A9)/B9");
         xlsxFormatter.updateFormula(cellWithFormula, Range.fromRange("Sheet", "A9:A9"), Range.fromRange("Sheet", "A90:A90"), null, 0);

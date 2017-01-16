@@ -25,7 +25,11 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.haulmont.yarg.exception.ReportingException;
 import com.haulmont.yarg.formatters.factory.FormatterFactoryInput;
 import com.haulmont.yarg.formatters.impl.xls.PdfConverter;
-import com.haulmont.yarg.formatters.impl.xlsx.*;
+import com.haulmont.yarg.formatters.impl.xlsx.BandsForRanges;
+import com.haulmont.yarg.formatters.impl.xlsx.CellReference;
+import com.haulmont.yarg.formatters.impl.xlsx.Document;
+import com.haulmont.yarg.formatters.impl.xlsx.Range;
+import com.haulmont.yarg.formatters.impl.xlsx.RangeDependencies;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.BandOrientation;
 import com.haulmont.yarg.structure.BandVisitor;
@@ -34,7 +38,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.docx4j.XmlUtils;
-import org.docx4j.dml.chart.*;
+import org.docx4j.dml.chart.CTAxDataSource;
+import org.docx4j.dml.chart.CTChart;
+import org.docx4j.dml.chart.CTNumDataSource;
+import org.docx4j.dml.chart.CTPlotArea;
+import org.docx4j.dml.chart.ListSer;
+import org.docx4j.dml.chart.SerContent;
 import org.docx4j.dml.spreadsheetdrawing.CTTwoCellAnchor;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.exceptions.InvalidFormatException;
@@ -44,12 +53,38 @@ import org.docx4j.openpackaging.parts.PartName;
 import org.docx4j.openpackaging.parts.SpreadsheetML.CalcChain;
 import org.docx4j.openpackaging.parts.SpreadsheetML.WorksheetPart;
 import org.xlsx4j.jaxb.Context;
-import org.xlsx4j.sml.*;
+import org.xlsx4j.sml.CTBreak;
+import org.xlsx4j.sml.CTCalcCell;
+import org.xlsx4j.sml.CTCalcChain;
+import org.xlsx4j.sml.CTCellFormula;
+import org.xlsx4j.sml.CTConditionalFormatting;
+import org.xlsx4j.sml.CTDefinedName;
+import org.xlsx4j.sml.CTMergeCell;
+import org.xlsx4j.sml.CTMergeCells;
+import org.xlsx4j.sml.CTPageBreak;
+import org.xlsx4j.sml.Cell;
+import org.xlsx4j.sml.Col;
+import org.xlsx4j.sml.DefinedNames;
+import org.xlsx4j.sml.Row;
+import org.xlsx4j.sml.STCalcMode;
+import org.xlsx4j.sml.STCellType;
+import org.xlsx4j.sml.SheetData;
+import org.xlsx4j.sml.Worksheet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class XlsxFormatter extends AbstractFormatter {
     protected PdfConverter pdfConverter;
@@ -68,14 +103,17 @@ public class XlsxFormatter extends AbstractFormatter {
 
     protected int previousRangesRightOffset;
 
+    protected boolean acceptUnknownBand;
+
     protected static class CellWithBand {
         protected BandData bandData;
-        protected Cell cell;
 
+        protected Cell cell;
         public CellWithBand(BandData bandData, Cell cell) {
             this.bandData = bandData;
             this.cell = cell;
         }
+
     }
 
     public XlsxFormatter(FormatterFactoryInput formatterFactoryInput) {
@@ -472,6 +510,8 @@ public class XlsxFormatter extends AbstractFormatter {
 
     protected void writeHBand(BandData band) {
         Range templateRange = getBandRange(band);
+        if (templateRange == null) return;
+
         Worksheet resultSheet = result.getSheetByName(templateRange.getSheet());
         List<Row> resultSheetRows = resultSheet.getSheetData().getRow();
 
@@ -676,7 +716,10 @@ public class XlsxFormatter extends AbstractFormatter {
     protected Range getBandRange(BandData band) {
         CTDefinedName targetRange = template.getDefinedName(band.getName());
         if (targetRange == null) {
-            throw wrapWithReportingException(String.format("Could not find named range for band [%s]", band.getName()));
+            if (!acceptUnknownBand) {
+                throw wrapWithReportingException(String.format("Could not find named range for band [%s]", band.getName()));
+            }
+            return null;
         }
 
         return Range.fromFormula(targetRange.getValue());

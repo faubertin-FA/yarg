@@ -28,7 +28,11 @@ import com.haulmont.yarg.formatters.impl.xls.PdfConverter;
 import com.haulmont.yarg.formatters.impl.xls.caches.XlsFontCache;
 import com.haulmont.yarg.formatters.impl.xls.caches.XlsStyleCache;
 import com.haulmont.yarg.formatters.impl.xls.caches.XslStyleHelper;
-import com.haulmont.yarg.formatters.impl.xls.hints.*;
+import com.haulmont.yarg.formatters.impl.xls.hints.AutoWidthHint;
+import com.haulmont.yarg.formatters.impl.xls.hints.CopyColumnWidthHint;
+import com.haulmont.yarg.formatters.impl.xls.hints.CustomCellStyleHint;
+import com.haulmont.yarg.formatters.impl.xls.hints.CustomWidthHint;
+import com.haulmont.yarg.formatters.impl.xls.hints.XlsHint;
 import com.haulmont.yarg.formatters.impl.xlsx.Range;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.BandOrientation;
@@ -38,7 +42,18 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.model.HSSFFormulaParser;
 import org.apache.poi.hssf.record.EscherAggregate;
-import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFChart;
+import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFName;
+import org.apache.poi.hssf.usermodel.HSSFPatriarch;
+import org.apache.poi.hssf.usermodel.HSSFPictureData;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.formula.ptg.AreaPtg;
 import org.apache.poi.ss.formula.ptg.Ptg;
 import org.apache.poi.ss.formula.ptg.RefPtg;
@@ -49,11 +64,21 @@ import org.apache.poi.ss.util.CellReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.haulmont.yarg.formatters.impl.xls.HSSFCellHelper.getCellFromReference;
 import static com.haulmont.yarg.formatters.impl.xls.HSSFPicturesHelper.getAllAnchors;
-import static com.haulmont.yarg.formatters.impl.xls.HSSFRangeHelper.*;
+import static com.haulmont.yarg.formatters.impl.xls.HSSFRangeHelper.getAreaForRange;
+import static com.haulmont.yarg.formatters.impl.xls.HSSFRangeHelper.getRangeContent;
+import static com.haulmont.yarg.formatters.impl.xls.HSSFRangeHelper.getTemplateSheetForRangeName;
+import static com.haulmont.yarg.formatters.impl.xls.HSSFRangeHelper.isMergeRegionInsideNamedRange;
+import static com.haulmont.yarg.formatters.impl.xls.HSSFRangeHelper.isNamedRangeInsideMergeRegion;
 
 /**
  * Document formatter for '.xls' file types
@@ -93,6 +118,8 @@ public class XLSFormatter extends AbstractFormatter {
 
     protected BiMap<BandData, Range> bandsToResultRanges = HashBiMap.create();
 
+    protected boolean acceptUnknownBand;
+
     public XLSFormatter(FormatterFactoryInput formatterFactoryInput) {
         super(formatterFactoryInput);
         supportedOutputTypes.add(ReportOutputType.xls);
@@ -102,6 +129,8 @@ public class XLSFormatter extends AbstractFormatter {
         hints.add(new CopyColumnWidthHint());
         hints.add(new AutoWidthHint());
         hints.add(new CustomWidthHint());
+
+        acceptUnknownBand = formatterFactoryInput.isAcceptUnknownBand();
     }
 
     public void setPdfConverter(PdfConverter pdfConverter) {
@@ -259,6 +288,8 @@ public class XLSFormatter extends AbstractFormatter {
         try {
             HSSFSheet templateSheet = getTemplateSheetForRangeName(templateWorkbook, rangeName);
 
+            if (templateSheet == null) return;
+
             if (templateSheet != currentTemplateSheet) { //todo: reimplement. store rownum for each sheet.
                 currentTemplateSheet = templateSheet;
                 rownum = 0;
@@ -291,7 +322,9 @@ public class XLSFormatter extends AbstractFormatter {
         String rangeName = band.getName();
         AreaReference templateRange = getAreaForRange(templateWorkbook, rangeName);
         if (templateRange == null) {
-            throw wrapWithReportingException(String.format("No such named range in xls file: %s", rangeName));
+            if (!acceptUnknownBand)
+                throw wrapWithReportingException(String.format("No such named range in xls file: %s", rangeName));
+            return;
         }
         CellReference[] crefs = templateRange.getAllReferencedCells();
 
@@ -631,9 +664,18 @@ public class XLSFormatter extends AbstractFormatter {
     protected void updateValueCell(BandData rootBand, BandData bandData, String templateCellValue, HSSFCell resultCell, HSSFPatriarch patriarch) {
         String parameterName = templateCellValue;
         parameterName = unwrapParameterName(parameterName);
-        String fullParameterName = bandData.getName() + "." + parameterName;
 
         if (StringUtils.isEmpty(parameterName)) return;
+
+        String parentBandName = getParentBandReference(parameterName);
+        if (parentBandName != null)
+            parameterName = parameterName.substring(parameterName.indexOf(parentBandName) + parentBandName.length() + 1);
+        String fullParameterName = bandData.getName() + "." + parameterName;
+
+        if (parentBandName != null && !bandData.getName().equals(parentBandName) && bandData.getParentBand() != null) {
+            updateValueCell(rootBand, bandData.getParentBand(), templateCellValue, resultCell, patriarch);
+            return;
+        }
 
         if (!bandData.getData().containsKey(parameterName)) {
             resultCell.setCellValue((String) null);
@@ -850,7 +892,16 @@ public class XLSFormatter extends AbstractFormatter {
         }
     }
 
-    //---------------------Utility classes------------------------
+    protected String getParentBandReference(String parameter) {
+        if (parameter == null) return null;
+        if (parameter.startsWith("..")) {
+            int dot = parameter.indexOf('.', 2);
+            return parameter.substring(2, dot);
+        }
+        return null;
+    }
+
+//---------------------Utility classes------------------------
 
     /**
      * Cell range at sheet

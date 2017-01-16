@@ -32,7 +32,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/splitted-aliases-in-table.docx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
                 new ReportTemplateImpl("", "./modules/core/test/smoketest/splitted-aliases-in-table.docx", "./modules/core/test/smoketest/splitted-aliases-in-table.docx",
-                        ReportOutputType.docx), outputStream));
+                        ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -51,7 +51,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/control-table-hide.docx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
                 new ReportTemplateImpl("", "./modules/core/test/smoketest/control-tables-1.docx", "./modules/core/test/smoketest/control-tables-1.docx",
-                        ReportOutputType.docx), outputStream));
+                        ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
         IOUtils.closeQuietly(outputStream);
 
@@ -62,7 +62,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
         outputStream = new FileOutputStream("./result/smoke/control-table-show.docx");
         formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
                 new ReportTemplateImpl("", "./modules/core/test/smoketest/control-tables-1.docx", "./modules/core/test/smoketest/control-tables-1.docx",
-                        ReportOutputType.docx), outputStream));
+                        ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
         IOUtils.closeQuietly(outputStream);
 
@@ -86,7 +86,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/control-tables-2.docx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
                 new ReportTemplateImpl("", "./modules/core/test/smoketest/control-tables-2.docx", "./modules/core/test/smoketest/control-tables-2.docx",
-                        ReportOutputType.docx), outputStream));
+                        ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
         IOUtils.closeQuietly(outputStream);
 
@@ -117,7 +117,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/url.docx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
                 new ReportTemplateImpl("", "./modules/core/test/smoketest/url.docx", "./modules/core/test/smoketest/url.docx",
-                        ReportOutputType.docx), outputStream));
+                        ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
         IOUtils.closeQuietly(outputStream);
     }
@@ -146,7 +146,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
 
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/TemplateRateBook.docx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/TemplateRateBook.docx", "./modules/core/test/smoketest/TemplateRateBook.docx", ReportOutputType.docx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/TemplateRateBook.docx", "./modules/core/test/smoketest/TemplateRateBook.docx", ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -172,7 +172,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/splitted-aliases.docx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("docx", root,
                 new ReportTemplateImpl("", "./modules/core/test/smoketest/splitted-aliases.docx", "./modules/core/test/smoketest/splitted-aliases.docx",
-                        ReportOutputType.docx), outputStream));
+                        ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -219,7 +219,7 @@ public class DocxSpecificTest extends AbstractFormatSpecificTest {
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("docx", root,
                 new ReportTemplateImpl("", "./modules/core/test/smoketest/colontitules.docx", "./modules/core/test/smoketest/colontitules.docx",
-                        ReportOutputType.docx), outputStream));
+                        ReportOutputType.docx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);

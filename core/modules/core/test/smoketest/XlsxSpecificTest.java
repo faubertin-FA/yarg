@@ -20,7 +20,7 @@ import java.util.Random;
  * @author degtyarjov
  * @version $Id$
  */
-public class XlsxSpecificTest extends AbstractFormatSpecificTest{
+public class XlsxSpecificTest extends AbstractFormatSpecificTest {
     @Test
     public void testXlsxCharts() throws Exception {
         BandData root = new BandData("Root", null, BandOrientation.HORIZONTAL);
@@ -51,7 +51,7 @@ public class XlsxSpecificTest extends AbstractFormatSpecificTest{
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/charts.xlsx");
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/charts.xlsx", "./modules/core/test/smoketest/charts.xlsx", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/charts.xlsx", "./modules/core/test/smoketest/charts.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -113,7 +113,7 @@ public class XlsxSpecificTest extends AbstractFormatSpecificTest{
         DefaultFormatterFactory defaultFormatterFactory = new DefaultFormatterFactory();
         defaultFormatterFactory.setOfficeIntegration(new OfficeIntegration(openOfficePath, 8100));
         ReportFormatter formatter = defaultFormatterFactory.createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/print-spaces.xlsx", "./modules/core/test/smoketest/print-spaces.xlsx", ReportOutputType.pdf), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/print-spaces.xlsx", "./modules/core/test/smoketest/print-spaces.xlsx", ReportOutputType.pdf), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
@@ -166,7 +166,7 @@ public class XlsxSpecificTest extends AbstractFormatSpecificTest{
 
         FileOutputStream outputStream = new FileOutputStream("./result/smoke/longColumnXlsxWithAggregatedFormulas.xlsx");
         ReportFormatter formatter = new DefaultFormatterFactory().createFormatter(new FormatterFactoryInput("xlsx", root,
-                new ReportTemplateImpl("", "./modules/core/test/smoketest/longColumnXlsxWithAggregatedFormulas.xlsx", "./modules/core/test/smoketest/longColumnXlsxWithAggregatedFormulas.xlsx", ReportOutputType.xlsx), outputStream));
+                new ReportTemplateImpl("", "./modules/core/test/smoketest/longColumnXlsxWithAggregatedFormulas.xlsx", "./modules/core/test/smoketest/longColumnXlsxWithAggregatedFormulas.xlsx", ReportOutputType.xlsx), outputStream, false));
         formatter.renderDocument();
 
         IOUtils.closeQuietly(outputStream);
