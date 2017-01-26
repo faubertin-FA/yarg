@@ -25,26 +25,20 @@ buildscript {
     }
 }
 
+// Release
+apply plugin: 'net.researchgate.release'
+release {
+    failOnCommitNeeded = false
+    failOnPublishNeeded = false
+    failOnUpdateNeeded = false
+    requireBranch = null
+    pushToCurrentBranch = false
+}
+
 def api = project(':FA-yarg-api')
 def core = project(':FA-yarg')
 
 configure([api, core]) {
-    apply(plugin: 'maven')
-    apply plugin: 'idea'
-    apply plugin: 'java'
-
-    // Release
-    apply plugin: 'net.researchgate.release'
-    release {
-        requireBranch = null
-        pushToCurrentBranch = true
-    }
-
-    repositories {
-        maven {url "https://nexus.financeactive.com/repository/maven-public/"}
-        mavenLocal()
-    }
-
     sourceSets {
         main {
             java { srcDir 'src' }
@@ -56,37 +50,10 @@ configure([api, core]) {
             resources { srcDir 'test' }
         }
     }
-
-    configurations {
-        deployerJars
-    }
-
-    dependencies {
-        compile(group: 'com.google.guava', name: 'guava', version: '17.0')
-        deployerJars(group: 'org.apache.maven.wagon', name: 'wagon-http', version: '1.0-beta-2')
-    }
-
-//    RELEASE SUR NEXUS.FINANCEACTIVE.COM
-    uploadArchives {
-        repositories.mavenDeployer {
-            configuration = configurations.deployerJars
-            repository(url: 'dav:dav:https://nexus.financeactive.com/repository/maven-thirdparties/') {
-                authentication(userName: 'service', password: 'BygsadHy')
-            }
-        }
-    }
 }
 
 configure(core) {
     apply(plugin: 'application')
-
-//    assemble {
-//        new File("result").mkdir();
-//        new File("result/integration").mkdir();
-//        new File("result/smoke").mkdir();
-//        new File("result/sample").mkdir();
-//        new File("result/console").mkdir();
-//    }
 
     dependencies {
         compile(api)
@@ -158,5 +125,34 @@ configure(core) {
     }
 
     mainClassName = "com.haulmont.yarg.console.ConsoleRunner"
+}
 
+subprojects {
+
+    apply plugin: 'maven'
+    apply plugin: 'idea'
+    apply plugin: 'java'
+
+    repositories {
+        maven {url "https://nexus.financeactive.com/repository/maven-public/"}
+        mavenLocal()
+    }
+    configurations {
+        deployerJars
+    }
+
+    dependencies {
+        compile(group: 'com.google.guava', name: 'guava', version: '17.0')
+        deployerJars(group: 'org.apache.maven.wagon', name: 'wagon-http', version: '1.0-beta-2')
+    }
+
+//    RELEASE SUR NEXUS.FINANCEACTIVE.COM
+    uploadArchives {
+        repositories.mavenDeployer {
+            configuration = configurations.deployerJars
+            repository(url: 'dav:http://nexus.financeactive.com/repository/maven-thirdparty/') {
+                authentication(userName: 'service', password: 'BygsadHy')
+            }
+        }
+    }
 }
