@@ -36,8 +36,11 @@ configure([api, core]) {
     // Release
     apply plugin: 'net.researchgate.release'
     release {
+        failOnCommitNeeded = false
+        failOnPublishNeeded = false
+        failOnUpdateNeeded = false
         requireBranch = null
-        pushToCurrentBranch = true
+        pushToCurrentBranch = false
     }
 
     repositories {
