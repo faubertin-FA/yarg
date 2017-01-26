@@ -1,53 +1,50 @@
 allprojects {
+
+    def projectName = "FA - YARG (Yet another report generator)"
+
+    def artifactVersion = '1.0.0-SNAPSHOT'
+    if (rootProject.hasProperty('buildVersion')) {
+        artifactVersion = rootProject['buildVersion']
+    }
+
     apply(plugin: 'java')
     apply(plugin: 'idea')
-    sourceCompatibility = '1.6'
-    targetCompatibility = '1.6'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    version = artifactVersion
+    group = 'com.haulmont.yarg'
 }
 
-def projectName = "YARG (Yet another report generator)"
-def projectDescription = "Open source library for report generation. Provided by Haulmont."
-def projectUrl = "https://github.com/cuba-platform/yarg"
-
-def artifactVersion = '1.1-SNAPSHOT'
-if (rootProject.hasProperty('buildVersion')) {
-    artifactVersion = rootProject['buildVersion']
+buildscript {
+    repositories {
+        maven { url "https://nexus.financeactive.com/repository/maven-public/" }
+        mavenLocal()
+    }
+    dependencies {
+        //Release plugin
+        classpath 'net.researchgate:gradle-release:2.0.2'
+    }
 }
-def isSnapshot = artifactVersion.endsWith('-SNAPSHOT')
 
-def api = project(':yarg-api')
-def core = project(':yarg')
-
-def repositoryUser = System.getenv('HAULMONT_REPOSITORY_USER')
-def repositoryPassword, repositoryUrl, workRepositoryUrl;
-
-if (repositoryUser) {//for internal users
-    repositoryPassword = System.getenv('HAULMONT_REPOSITORY_PASSWORD')
-    repositoryUrl = 'http://repository.haulmont.com:8587/nexus/content'
-    workRepositoryUrl = "$repositoryUrl/groups/work"
-} else {//for external users
-    repositoryUser = 'cuba'
-    repositoryPassword = 'cuba123'
-    repositoryUrl = 'https://repo.cuba-platform.com/content'
-    workRepositoryUrl = "$repositoryUrl/groups/work"
-}
+def api = project(':FA-yarg-api')
+def core = project(':FA-yarg')
 
 configure([api, core]) {
     apply(plugin: 'maven')
-    apply(plugin: 'signing')
+    apply plugin: 'idea'
+    apply plugin: 'java'
 
-    group = 'com.haulmont.yarg'
-    version = artifactVersion
+    // Release
+    apply plugin: 'net.researchgate.release'
+    release {
+        requireBranch = null
+        pushToCurrentBranch = true
+    }
 
     repositories {
-        mavenCentral()
-        maven {
-            credentials {
-                username repositoryUser
-                password repositoryPassword
-            }
-            url workRepositoryUrl
-        }
+        maven {url "https://nexus.financeactive.com/repository/maven-public/"}
+        mavenLocal()
     }
 
     sourceSets {
@@ -64,7 +61,6 @@ configure([api, core]) {
 
     configurations {
         deployerJars
-        sourceArchives
     }
 
     dependencies {
@@ -72,100 +68,31 @@ configure([api, core]) {
         deployerJars(group: 'org.apache.maven.wagon', name: 'wagon-http', version: '1.0-beta-2')
     }
 
-    task sourceJar(type: Jar) {
-        from sourceSets.main.java
-        classifier = 'sources'
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
-    }
-
-    artifacts {
-        archives sourceJar
-        archives javadocJar
-    }
-
-    if (signing.hasProperty('keyId')) {
-        signing {
-            sign configurations.archives
-        }
-    }
-
-    uploadArchives.configure {
-        repositories.mavenDeployer {
-            name = 'httpDeployer'
-            configuration = configurations.deployerJars
-
-//            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-//
-//            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-//                authentication(userName: "$oss_login", password:  "$oss_password")
+//    RELEASE SUR NEXUS.FINANCEACTIVE.COM
+//    A activer dans un second temps.
+//    uploadArchives {
+//        repositories.mavenDeployer {
+//            configuration = configurations.deployerJars
+//            repository(url: 'dav:https://nexus.financeactive.com/repository/maven-fa-releases/') {
+//                authentication(userName: 'service', password: 'BygsadHy')
 //            }
+//            snapshotRepository(url: 'dav:https://nexus.financeactive.com/repository/maven-fa-snapshots/') {
+//                authentication(userName: 'service', password: 'BygsadHy')
+//            }
+//        }
+//    }
 
-            repository(url: "$repositoryUrl/repositories/" + (isSnapshot ? 'snapshots' : 'releases')) {
-                authentication(userName: repositoryUser, password: repositoryPassword)
-            }
-
-            pom.project {
-                name = "$projectName"
-                description = "$projectDescription"
-                url = "$projectUrl"
-                developers {
-                    developer {
-                        id 'tinhol'
-                        email 'tinhol@mail.ru'
-                        organization = 'Haulmont'
-                        organizationUrl 'http://www.haulmont.com/'
-                    }
-                }
-                scm {
-                    connection = "$projectUrl"
-                    url = "$projectUrl"
-                }
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
+//  RELEASE SUR THALIA
+    uploadArchives {
+        repositories.mavenDeployer {
+            configuration = configurations.deployerJars
+            repository(url: 'dav:dav:https://nexus.financeactive.com/repository/maven-thirdparties/') {
+                authentication(userName: 'service', password: 'BygsadHy')
             }
         }
     }
 
-    install.configure {
-        repositories.mavenInstaller {
-            pom.project {
-                name = "$projectName"
-                description = "$projectDescription"
-                url = "$projectUrl"
-                developers {
-                    developer {
-                        id 'tinhol'
-                        email 'tinhol@mail.ru'
-                        organization = 'Haulmont'
-                        organizationUrl 'http://www.haulmont.com/'
-                    }
-                }
-                scm {
-                    connection = "$projectUrl"
-                    url = "$projectUrl"
-                }
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
-}
-
-configure(api) {
+//    createReleaseTag.dependsOn uploadArchives
 
 }
 
@@ -251,28 +178,4 @@ configure(core) {
 
     mainClassName = "com.haulmont.yarg.console.ConsoleRunner"
 
-    configurations.archives.artifacts.removeAll {
-        it.file =~ 'tar' || it.file =~ 'zip'
-    }
-
-    startScripts << {
-        copy {
-            from "reporting.properties"
-            into outputDir
-        }
-    }
-
-    installDist << {    
-        def outputDir = destinationDir
-        copy {
-            from "reporting.properties"
-            into "$outputDir/bin"
-        }
-    }
-
-    test {
-        maxHeapSize = "512m"
-        jvmArgs '-XX:MaxPermSize=256m'
-        workingDir = new File('../..')
-    }
 }

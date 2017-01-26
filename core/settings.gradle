@@ -1,6 +1,6 @@
-include(':yarg-api', ':yarg')
+include(':FA-yarg-api', ':FA-yarg')
 
-rootProject.name = 'yarg-all'
+rootProject.name = 'FA-yarg-all'
 
-project(':yarg-api').projectDir = new File(settingsDir, './modules/api')
-project(':yarg').projectDir = new File(settingsDir, './modules/core')
+project(':FA-yarg-api').projectDir = new File(settingsDir, './modules/api')
+project(':FA-yarg').projectDir = new File(settingsDir, './modules/core')
