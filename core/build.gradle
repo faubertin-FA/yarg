@@ -1,8 +1,6 @@
 allprojects {
 
-    def projectName = "FA - YARG (Yet another report generator)"
-
-    def artifactVersion = '1.0.0-SNAPSHOT'
+    def artifactVersion = '1.0.0'
     if (rootProject.hasProperty('buildVersion')) {
         artifactVersion = rootProject['buildVersion']
     }
@@ -69,20 +67,6 @@ configure([api, core]) {
     }
 
 //    RELEASE SUR NEXUS.FINANCEACTIVE.COM
-//    A activer dans un second temps.
-//    uploadArchives {
-//        repositories.mavenDeployer {
-//            configuration = configurations.deployerJars
-//            repository(url: 'dav:https://nexus.financeactive.com/repository/maven-fa-releases/') {
-//                authentication(userName: 'service', password: 'BygsadHy')
-//            }
-//            snapshotRepository(url: 'dav:https://nexus.financeactive.com/repository/maven-fa-snapshots/') {
-//                authentication(userName: 'service', password: 'BygsadHy')
-//            }
-//        }
-//    }
-
-//  RELEASE SUR THALIA
     uploadArchives {
         repositories.mavenDeployer {
             configuration = configurations.deployerJars
@@ -91,21 +75,18 @@ configure([api, core]) {
             }
         }
     }
-
-//    createReleaseTag.dependsOn uploadArchives
-
 }
 
 configure(core) {
     apply(plugin: 'application')
 
-    assemble {
-        new File("result").mkdir();
-        new File("result/integration").mkdir();
-        new File("result/smoke").mkdir();
-        new File("result/sample").mkdir();
-        new File("result/console").mkdir();
-    }
+//    assemble {
+//        new File("result").mkdir();
+//        new File("result/integration").mkdir();
+//        new File("result/smoke").mkdir();
+//        new File("result/sample").mkdir();
+//        new File("result/console").mkdir();
+//    }
 
     dependencies {
         compile(api)
