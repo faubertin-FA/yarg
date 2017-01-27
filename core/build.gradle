@@ -154,7 +154,7 @@ subprojects {
     uploadArchives {
         repositories.mavenDeployer {
             configuration = configurations.deployerJars
-            repository(url: 'dav:http://nexus.financeactive.com/repository/maven-thirdparty/') {
+            repository(url: 'dav:https://nexus.financeactive.com/repository/maven-thirdparty/') {
                 authentication(userName: 'service', password: 'BygsadHy')
             }
         }
