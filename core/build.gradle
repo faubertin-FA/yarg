@@ -14,7 +14,6 @@ release {
     failOnPublishNeeded = false
     failOnUpdateNeeded = false
     git {
-//        requireBranch = 'fix_var_substitution'
         requireBranch = null
         pushToCurrentBranch = false
     }
