@@ -1,17 +1,31 @@
 allprojects {
 
-    def artifactVersion = '1.0.0'
-    if (rootProject.hasProperty('buildVersion')) {
-        artifactVersion = rootProject['buildVersion']
-    }
+//    def artifactVersion = '1.0.0'
+//    if (rootProject.hasProperty('buildVersion')) {
+//        artifactVersion = rootProject['buildVersion']
+//    }
 
     apply(plugin: 'java')
     apply(plugin: 'idea')
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-    version = artifactVersion
+//    version = artifactVersion
     group = 'com.haulmont.yarg'
+}
+
+// Release
+apply plugin: 'net.researchgate.release'
+release {
+    failOnUnversionedFiles = false
+    failOnCommitNeeded = false
+    failOnPublishNeeded = false
+    failOnUpdateNeeded = false
+
+    git {
+        requireBranch = 'fix_var_substitution'
+        pushToCurrentBranch = false
+    }
 }
 
 buildscript {
@@ -21,18 +35,8 @@ buildscript {
     }
     dependencies {
         //Release plugin
-        classpath 'net.researchgate:gradle-release:2.0.2'
+        classpath 'net.researchgate:gradle-release:2.3.5'
     }
-}
-
-// Release
-apply plugin: 'net.researchgate.release'
-release {
-    failOnCommitNeeded = false
-    failOnPublishNeeded = false
-    failOnUpdateNeeded = false
-    requireBranch = null
-    pushToCurrentBranch = false
 }
 
 def api = project(':FA-yarg-api')
