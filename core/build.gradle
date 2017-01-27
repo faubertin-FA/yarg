@@ -4,6 +4,28 @@ allprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
     group = 'com.haulmont.yarg'
+
+    test {
+        exclude '**/CustomTemplateTest.class'
+        exclude '**/ExportImportTest.class'
+        exclude '**/ReportingTest.class'
+        exclude '**/SqlLoaderTest.class'
+        exclude '**/XlsxUtilTest.class'
+        exclude 'integration/XlsIntegrationTest.class'
+        exclude 'integration/XlsxIntegrationTest.class'
+        exclude 'loaders/DataExtractorTest.class'
+        exclude 'sample/bookstore/BookStoreTest.class'
+        exclude 'sample/bookstore2/BookStore2Test.class'
+        exclude 'sample/financedetails/BreakdownTest.class'
+        exclude 'sample/incomes/IncomesTest.class'
+        exclude 'sample/invoice/InvoiceTest.class'
+        exclude 'sample/nestedband/NestedBandTest.class'
+        exclude 'sample/services/ServicesTest.class'
+        exclude 'smoketest/DocSpecificTest.class'
+        exclude 'smoketest/DocxSpecificTest.class'
+        exclude 'smoketest/FormattersSmokeTest.class'
+        exclude 'smoketest/XlsxSpecificTest.class'
+    }
 }
 
 // Release
