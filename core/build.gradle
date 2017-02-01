@@ -1,6 +1,7 @@
 allprojects {
-    apply(plugin: 'java')
-    apply(plugin: 'idea')
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
     group = 'com.haulmont.yarg'
@@ -52,8 +53,8 @@ buildscript {
     }
 }
 
-def api = project(':FA-yarg-api')
-def core = project(':FA-yarg')
+def api = project(':yarg-api')
+def core = project(':yarg')
 
 configure([api, core]) {
     sourceSets {
@@ -131,7 +132,7 @@ configure(core) {
             exclude(group: 'org.apache.poi', module: 'poi')
             exclude(group: 'junit', module: 'junit')
         }
-        compile(group: "org.docx4j", name: "docx4j-ImportXHTML", version: "3.2.0"){
+        compile(group: "org.docx4j", name: "docx4j-ImportXHTML", version: "3.2.0") {
             exclude(group: 'junit', module: 'junit')
             exclude(group: 'org.apache.poi', module: 'poi')
         }
@@ -151,7 +152,7 @@ subprojects {
     apply plugin: 'java'
 
     repositories {
-        maven {url "https://nexus.financeactive.com/repository/maven-public/"}
+        maven { url "https://nexus.financeactive.com/repository/maven-public/" }
         mavenLocal()
     }
     configurations {
