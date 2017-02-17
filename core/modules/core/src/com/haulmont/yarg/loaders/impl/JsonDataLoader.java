@@ -24,6 +24,7 @@ import com.haulmont.yarg.exception.DataLoadingException;
 import com.haulmont.yarg.loaders.impl.json.JsonMap;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.ReportQuery;
+import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -68,6 +69,16 @@ import java.util.regex.Pattern;
 public class JsonDataLoader extends AbstractDataLoader {
     protected Pattern parameterPattern = Pattern.compile("parameter=([A-z0-9_.]+)");
 
+    private Configuration configuration;
+
+    public JsonDataLoader() {
+        this.configuration = Configuration.defaultConfiguration();
+    }
+
+    public JsonDataLoader(Configuration configuration) {
+        this.configuration = configuration == null ? Configuration.defaultConfiguration() : configuration;
+    }
+
     @Override
     public List<Map<String, Object>> loadData(ReportQuery reportQuery, BandData parentBand, Map<String, Object> reportParams) {
         Map<String, Object> currentParams = new HashMap<String, Object>();
@@ -107,7 +118,7 @@ public class JsonDataLoader extends AbstractDataLoader {
                 }
 
                 try {
-                    Object scriptResult = JsonPath.read(json, script);
+                    Object scriptResult = JsonPath.parse(json, this.configuration).read(script);
                     parseScriptResult(result, script, scriptResult);
                 } catch (com.jayway.jsonpath.PathNotFoundException e) {
                     return Collections.emptyList();
