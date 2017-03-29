@@ -36,6 +36,7 @@ import com.haulmont.yarg.structure.BandVisitor;
 import com.haulmont.yarg.structure.ReportOutputType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.docx4j.XmlUtils;
 import org.docx4j.dml.chart.CTAxDataSource;
@@ -109,6 +110,7 @@ public class XlsxFormatter extends AbstractFormatter {
         protected BandData bandData;
 
         protected Cell cell;
+
         public CellWithBand(BandData bandData, Cell cell) {
             this.bandData = bandData;
             this.cell = cell;
@@ -119,6 +121,7 @@ public class XlsxFormatter extends AbstractFormatter {
     public XlsxFormatter(FormatterFactoryInput formatterFactoryInput) {
         super(formatterFactoryInput);
         supportedOutputTypes.add(ReportOutputType.xlsx);
+        acceptUnknownBand = formatterFactoryInput.isAcceptUnknownBand();
     }
 
     public void setPdfConverter(PdfConverter pdfConverter) {
@@ -532,6 +535,8 @@ public class XlsxFormatter extends AbstractFormatter {
 
     protected void writeVBand(BandData band) {
         Range templateRange = getBandRange(band);
+        if (templateRange == null) return;
+
         Worksheet resultSheet = result.getSheetByName(templateRange.getSheet());
         List<Row> resultSheetRows = resultSheet.getSheetData().getRow();
 
@@ -826,7 +831,19 @@ public class XlsxFormatter extends AbstractFormatter {
 
         if (UNIVERSAL_ALIAS_PATTERN.matcher(cellValue).matches()) {
             String parameterName = unwrapParameterName(cellValue);
+
+            if (StringUtils.isEmpty(parameterName)) return;
+
+            String parentBandName = getParentBandReference(parameterName);
+            if (parentBandName != null)
+                parameterName = parameterName.substring(parameterName.indexOf(parentBandName) + parentBandName.length() + 1);
             String fullParameterName = bandData.getName() + "." + parameterName;
+
+            if (parentBandName != null && !bandData.getName().equals(parentBandName) && bandData.getParentBand() != null) {
+                updateCell(worksheetPart, bandData.getParentBand(), newCell);
+                return;
+            }
+
             Object value = bandData.getData().get(parameterName);
 
             if (value == null) {
@@ -886,6 +903,15 @@ public class XlsxFormatter extends AbstractFormatter {
     protected void writeToOutputStream(SpreadsheetMLPackage mlPackage, OutputStream outputStream) throws Docx4JException {
         SaveToZipFile saver = new SaveToZipFile(mlPackage);
         saver.save(outputStream);
+    }
+
+    protected String getParentBandReference(String parameter) {
+        if (parameter == null) return null;
+        if (parameter.startsWith("..")) {
+            int dot = parameter.indexOf('.', 2);
+            return parameter.substring(2, dot);
+        }
+        return null;
     }
 
     protected static class Offset {

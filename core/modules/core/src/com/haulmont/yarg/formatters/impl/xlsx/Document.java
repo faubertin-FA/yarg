@@ -15,7 +15,6 @@
  */
 
 /**
- *
  * @author degtyarjov
  * @version $Id$
  */
@@ -35,9 +34,27 @@ import org.docx4j.openpackaging.parts.SpreadsheetML.SharedStrings;
 import org.docx4j.openpackaging.parts.SpreadsheetML.WorksheetPart;
 import org.docx4j.openpackaging.parts.relationships.RelationshipsPart;
 import org.docx4j.relationships.Relationship;
-import org.xlsx4j.sml.*;
+import org.xlsx4j.sml.CTDefinedName;
+import org.xlsx4j.sml.CTMergeCells;
+import org.xlsx4j.sml.CTPageBreak;
+import org.xlsx4j.sml.CTRElt;
+import org.xlsx4j.sml.CTRst;
+import org.xlsx4j.sml.Cell;
+import org.xlsx4j.sml.Col;
+import org.xlsx4j.sml.Cols;
+import org.xlsx4j.sml.Row;
+import org.xlsx4j.sml.STCellType;
+import org.xlsx4j.sml.Sheet;
+import org.xlsx4j.sml.SheetData;
+import org.xlsx4j.sml.Workbook;
+import org.xlsx4j.sml.Worksheet;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Document {
     protected SpreadsheetMLPackage thePackage;
@@ -173,7 +190,7 @@ public class Document {
         int chartNum = 0;
         for (Relationship r : rp.getRelationships().getRelationship()) {
             Part part = rp.getPart(r);
-            if (handled.contains(part)) {
+            if (part == null || handled.contains(part)) {
                 continue;
             }
 
@@ -203,7 +220,7 @@ public class Document {
                 }
             }
 
-            if (part instanceof WorksheetPart) {
+            if (part instanceof WorksheetPart && part.getSourceRelationships() != null) {
                 for (Relationship relationship : part.getSourceRelationships()) {
                     if (relationship.getType().endsWith("worksheet")) {
                         String sheetId = relationship.getId();
