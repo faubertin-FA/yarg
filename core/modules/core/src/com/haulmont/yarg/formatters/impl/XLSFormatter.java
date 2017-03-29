@@ -167,7 +167,7 @@ public class XLSFormatter extends AbstractFormatter {
             cleanupCells(resultSheet);
         }
 
-        copyPicturesToResultWorkbook();
+        //copyPicturesToResultWorkbook();
 
         initNamedStyleCache();
     }
