@@ -39,6 +39,7 @@ import org.xlsx4j.sml.CTMergeCells;
 import org.xlsx4j.sml.CTPageBreak;
 import org.xlsx4j.sml.CTRElt;
 import org.xlsx4j.sml.CTRst;
+import org.xlsx4j.sml.CTStylesheet;
 import org.xlsx4j.sml.Cell;
 import org.xlsx4j.sml.Col;
 import org.xlsx4j.sml.Cols;
@@ -63,6 +64,7 @@ public class Document {
     protected Map<Range, ChartWrapper> chartSpaces = new HashMap<Range, ChartWrapper>();
     protected Workbook workbook;
     protected SharedStrings sharedStrings;
+    protected StyleSheet styleSheet;
     protected HashSet<Part> handled = new HashSet<Part>();
 
 
@@ -186,6 +188,10 @@ public class Document {
         return null;
     }
 
+    public StyleSheet getStyleSheet() {
+        return styleSheet;
+    }
+
     private void traverse(Part parent, RelationshipsPart rp) {
         int chartNum = 0;
         for (Relationship r : rp.getRelationships().getRelationship()) {
@@ -213,6 +219,11 @@ public class Document {
                     }
 
                     chartSpaces.put(range, new ChartWrapper((CTChartSpace) o, drawing, ctTwoCellAnchor));
+                }
+
+                if (o instanceof CTStylesheet) {
+                    styleSheet = new StyleSheet((CTStylesheet) o);
+
                 }
 
                 if (o instanceof Workbook) {

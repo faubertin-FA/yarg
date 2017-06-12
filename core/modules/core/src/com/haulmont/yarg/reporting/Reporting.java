@@ -113,7 +113,7 @@ public class Reporting implements ReportingAPI {
             return createReportOutputDocument(report, reportTemplate, outputName, rootBand);
         } catch (ReportingException e) {
             logReport("An error occurred while running report [%s] with parameters [%s].", report, params);
-            logger.info("Trace: ", e);
+            logException(e);
             //validation exception is usually shown to clients, so probably there is no need to add report name there (to keep the original message)
             if (!(e instanceof ValidationException)) {
                 e.setReportDetails(format(" Report name [%s]", report.getName()));
@@ -182,6 +182,10 @@ public class Reporting implements ReportingAPI {
         logger.info(format(caption, report.getName(), parametersString));
     }
 
+    protected void logException(ReportingException e) {
+        logger.info("Trace: ", e);
+    }
+
     protected ReportOutputDocument createReportOutputDocument(Report report, ReportTemplate reportTemplate, String outputName, BandData rootBand) {
         return new ReportOutputDocumentImpl(report, null, outputName, reportTemplate.getOutputType());
     }
@@ -211,7 +215,7 @@ public class Reporting implements ReportingAPI {
                                 format("No data in band [%s] parameter [%s] found. " +
                                         "This band and parameter is used for output file name generation.", bandWithFileName, paramName));
                     } else {
-                        outputName = fileName.toString();
+                        outputName = matcher.replaceFirst(fileName.toString());
                     }
                 } else {
                     throw new ReportingException(format("No data in band [%s] found.This band is used for output file name generation.", bandName));

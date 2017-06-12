@@ -30,6 +30,7 @@ import com.haulmont.yarg.formatters.impl.xlsx.CellReference;
 import com.haulmont.yarg.formatters.impl.xlsx.Document;
 import com.haulmont.yarg.formatters.impl.xlsx.Range;
 import com.haulmont.yarg.formatters.impl.xlsx.RangeDependencies;
+import com.haulmont.yarg.formatters.impl.xlsx.hints.XslxHintProcessor;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.BandOrientation;
 import com.haulmont.yarg.structure.BandVisitor;
@@ -53,6 +54,8 @@ import org.docx4j.openpackaging.packages.SpreadsheetMLPackage;
 import org.docx4j.openpackaging.parts.PartName;
 import org.docx4j.openpackaging.parts.SpreadsheetML.CalcChain;
 import org.docx4j.openpackaging.parts.SpreadsheetML.WorksheetPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xlsx4j.jaxb.Context;
 import org.xlsx4j.sml.CTBreak;
 import org.xlsx4j.sml.CTCalcCell;
@@ -60,6 +63,7 @@ import org.xlsx4j.sml.CTCalcChain;
 import org.xlsx4j.sml.CTCellFormula;
 import org.xlsx4j.sml.CTConditionalFormatting;
 import org.xlsx4j.sml.CTDefinedName;
+import org.xlsx4j.sml.CTHeaderFooter;
 import org.xlsx4j.sml.CTMergeCell;
 import org.xlsx4j.sml.CTMergeCells;
 import org.xlsx4j.sml.CTPageBreak;
@@ -69,7 +73,9 @@ import org.xlsx4j.sml.DefinedNames;
 import org.xlsx4j.sml.Row;
 import org.xlsx4j.sml.STCalcMode;
 import org.xlsx4j.sml.STCellType;
+import org.xlsx4j.sml.Sheet;
 import org.xlsx4j.sml.SheetData;
+import org.xlsx4j.sml.Sheets;
 import org.xlsx4j.sml.Worksheet;
 
 import java.io.ByteArrayOutputStream;
@@ -82,10 +88,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 public class XlsxFormatter extends AbstractFormatter {
     protected PdfConverter pdfConverter;
@@ -101,22 +107,12 @@ public class XlsxFormatter extends AbstractFormatter {
 
     protected Map<String, Range> lastRenderedRangeForBandName = new HashMap<String, Range>();
     protected Map<Worksheet, Long> lastRowForSheet = new HashMap<Worksheet, Long>();
+    protected XslxHintProcessor hintProcessor = new XslxHintProcessor();
 
     protected int previousRangesRightOffset;
 
     protected boolean acceptUnknownBand;
-
-    protected static class CellWithBand {
-        protected BandData bandData;
-
-        protected Cell cell;
-
-        public CellWithBand(BandData bandData, Cell cell) {
-            this.bandData = bandData;
-            this.cell = cell;
-        }
-
-    }
+    protected static final Logger log = LoggerFactory.getLogger(XlsxFormatter.class);
 
     public XlsxFormatter(FormatterFactoryInput formatterFactoryInput) {
         super(formatterFactoryInput);
@@ -132,6 +128,7 @@ public class XlsxFormatter extends AbstractFormatter {
     public void renderDocument() {
         init();
 
+        hintProcessor.init(template, result);
         findVerticalDependencies();
 
         result.clearWorkbook();
@@ -144,6 +141,9 @@ public class XlsxFormatter extends AbstractFormatter {
         updateCharts();
         updateFormulas();
         updateConditionalFormatting();
+        updateHeaderAndFooter();
+        updateSheetNames();
+        hintProcessor.apply();
 
         saveAndClose();
     }
@@ -193,7 +193,9 @@ public class XlsxFormatter extends AbstractFormatter {
         if (definedNames != null) {
             List<CTDefinedName> definedName = definedNames.getDefinedName();
             for (CTDefinedName name1 : definedName) {
+                if (hintProcessor.isHintDefinedName(name1.getName())) continue;
                 for (CTDefinedName name2 : definedName) {
+                    if (hintProcessor.isHintDefinedName(name2.getName())) continue;
                     if (!name1.equals(name2)) {
                         Range range1 = Range.fromFormula(name1.getValue());
                         Range range2 = Range.fromFormula(name2.getValue());
@@ -354,18 +356,43 @@ public class XlsxFormatter extends AbstractFormatter {
             for (Range templateRange : rangeDependencies.templates()) {
                 if (templateRange.containsAny(formulaRanges)) {
                     List<Range> resultRanges = new ArrayList<Range>(rangeDependencies.resultsForTemplate(templateRange));
-                    for (Iterator<Range> iterator = resultRanges.iterator(); iterator.hasNext(); ) {
-                        Range resultRange = iterator.next();
+                    List<Range> newRanges = new ArrayList<Range>();
+                    for (Range resultRange : resultRanges) {
                         BandData bandData = bandsForRanges.bandForResultRange(resultRange);
-                        if (!bandData.getParentBand().equals(formulaParentBand)
-                                && !bandData.getParentBand().equals(formulaBand)) {
-                            iterator.remove();
+                        boolean hasSameFormulaBand = false;
+                        BandData nextParent = bandData.getParentBand();
+                        while (nextParent != null) {
+                            hasSameFormulaBand = nextParent.equals(formulaBand);
+                            if (hasSameFormulaBand) {
+                                break;
+                            }
+                            nextParent = nextParent.getParentBand();
+                        }
+                        if (hasSameFormulaBand) {
+                            newRanges.add(resultRange);
+                        }
+                    }
+                    if (newRanges.isEmpty()) {
+                        for (Range resultRange : resultRanges) {
+                            BandData bandData = bandsForRanges.bandForResultRange(resultRange);
+                            boolean hasSameParentFormulaBand = false;
+                            BandData nextParent = bandData.getParentBand();
+                            while (nextParent != null) {
+                                hasSameParentFormulaBand = nextParent.equals(formulaParentBand);
+                                if (hasSameParentFormulaBand) {
+                                    break;
+                                }
+                                nextParent = nextParent.getParentBand();
+                            }
+                            if (hasSameParentFormulaBand) {
+                                newRanges.add(resultRange);
+                            }
                         }
                     }
 
                     for (Range formulaRange : formulaRanges) {
-                        if (resultRanges.size() > 0) {
-                            Range shiftedRange = calculateFormulaRangeChange(formulaRange, templateRange, resultRanges);
+                        if (newRanges.size() > 0) {
+                            Range shiftedRange = calculateFormulaRangeChange(formulaRange, templateRange, newRanges);
                             updateFormula(cellWithFormula, formulaRange, shiftedRange, calculationChain, formulaCount++);
                         } else {
                             cellWithFormula.setF(null);
@@ -513,39 +540,39 @@ public class XlsxFormatter extends AbstractFormatter {
 
     protected void writeHBand(BandData band) {
         Range templateRange = getBandRange(band);
-        if (templateRange == null) return;
+        if (templateRange != null) {
+            Worksheet resultSheet = result.getSheetByName(templateRange.getSheet());
+            List<Row> resultSheetRows = resultSheet.getSheetData().getRow();
 
-        Worksheet resultSheet = result.getSheetByName(templateRange.getSheet());
-        List<Row> resultSheetRows = resultSheet.getSheetData().getRow();
+            Row firstRow = findNextRowForHBand(band, templateRange, resultSheetRows);
+            firstRow = ensureNecessaryRowsCreated(templateRange, resultSheet, firstRow);
 
-        Row firstRow = findNextRowForHBand(band, templateRange, resultSheetRows);
-        firstRow = ensureNecessaryRowsCreated(templateRange, resultSheet, firstRow);
+            List<Cell> resultCells = copyCells(band, templateRange, resultSheetRows, firstRow, resultSheet);
 
-        List<Cell> resultCells = copyCells(band, templateRange, resultSheetRows, firstRow, resultSheet);
+            updateRangeMappings(band, templateRange, resultCells);
 
-        updateRangeMappings(band, templateRange, resultCells);
-
-        //render children
-        if (CollectionUtils.isNotEmpty(resultCells)) {
-            for (BandData child : band.getChildrenList()) {
-                writeBand(child);
+            //render children
+            if (CollectionUtils.isNotEmpty(resultCells)) {
+                for (BandData child : band.getChildrenList()) {
+                    writeBand(child);
+                }
             }
         }
     }
 
     protected void writeVBand(BandData band) {
         Range templateRange = getBandRange(band);
-        if (templateRange == null) return;
+        if (templateRange != null) {
+            Worksheet resultSheet = result.getSheetByName(templateRange.getSheet());
+            List<Row> resultSheetRows = resultSheet.getSheetData().getRow();
 
-        Worksheet resultSheet = result.getSheetByName(templateRange.getSheet());
-        List<Row> resultSheetRows = resultSheet.getSheetData().getRow();
+            Row firstRow = findNextRowForVBand(band, templateRange, resultSheetRows);
+            firstRow = ensureNecessaryRowsCreated(templateRange, resultSheet, firstRow);
 
-        Row firstRow = findNextRowForVBand(band, templateRange, resultSheetRows);
-        firstRow = ensureNecessaryRowsCreated(templateRange, resultSheet, firstRow);
+            List<Cell> resultCells = copyCells(band, templateRange, resultSheetRows, firstRow, resultSheet);
 
-        List<Cell> resultCells = copyCells(band, templateRange, resultSheetRows, firstRow, resultSheet);
-
-        updateRangeMappings(band, templateRange, resultCells);
+            updateRangeMappings(band, templateRange, resultCells);
+        }
     }
 
     protected void updateRangeMappings(BandData band, Range templateRange, List<Cell> resultCells) {
@@ -722,7 +749,7 @@ public class XlsxFormatter extends AbstractFormatter {
         CTDefinedName targetRange = template.getDefinedName(band.getName());
         if (targetRange == null) {
             if (!acceptUnknownBand) {
-                throw wrapWithReportingException(String.format("Could not find named range for band [%s]", band.getName()));
+                log.info("Could not find named range for band {}", band.getName());
             }
             return null;
         }
@@ -787,6 +814,9 @@ public class XlsxFormatter extends AbstractFormatter {
                 resultColumn.setMax(newRef.getColumn());
                 resultWorksheet.getCols().get(0).getCol().add(resultColumn);
             }
+
+            hintProcessor.add(tempRef, templateCell, newCell, bandData);
+
         }
         return resultCells;
     }
@@ -912,6 +942,59 @@ public class XlsxFormatter extends AbstractFormatter {
             return parameter.substring(2, dot);
         }
         return null;
+    }
+
+    protected void updateHeaderAndFooter() {
+        for (Document.SheetWrapper sheetWrapper : result.getWorksheets()) {
+            Worksheet worksheet = sheetWrapper.getWorksheet().getJaxbElement();
+            if (worksheet.getHeaderFooter() != null) {
+                CTHeaderFooter headerFooter = worksheet.getHeaderFooter();
+                if (headerFooter.getOddHeader() != null) {
+                    headerFooter.setOddHeader(insertBandDataToString(headerFooter.getOddHeader()));
+                }
+                if (headerFooter.getOddFooter() != null) {
+                    headerFooter.setOddFooter(insertBandDataToString(headerFooter.getOddFooter()));
+                }
+            }
+        }
+    }
+
+    protected void updateSheetNames() {
+        Sheets sheets = result.getWorkbook().getSheets();
+        if (sheets != null && sheets.getSheet() != null) {
+            for (Sheet sheet : sheets.getSheet()) {
+                if (sheet.getName() != null) {
+                    sheet.setName(insertBandDataToString(sheet.getName()));
+                }
+            }
+        }
+    }
+
+    protected String insertBandDataToString(String resultStr) {
+        List<String> parametersToInsert = new ArrayList<String>();
+        Matcher matcher = UNIVERSAL_ALIAS_PATTERN.matcher(resultStr);
+        while (matcher.find()) {
+            parametersToInsert.add(unwrapParameterName(matcher.group()));
+        }
+        for (String parameterName : parametersToInsert) {
+            BandPathAndParameterName bandPathAndParameterName = separateBandNameAndParameterName(parameterName);
+            BandData bandData = findBandByPath(bandPathAndParameterName.getBandPath());
+            Object value = bandData.getData().get(bandPathAndParameterName.getParameterName());
+            String fullParameterName = bandData.getName() + "." + parameterName;
+            String valueStr = formatValue(value, parameterName, fullParameterName);
+            resultStr = inlineParameterValue(resultStr, parameterName, valueStr);
+        }
+        return resultStr;
+    }
+
+    protected static class CellWithBand {
+        protected BandData bandData;
+        protected Cell cell;
+
+        public CellWithBand(BandData bandData, Cell cell) {
+            this.bandData = bandData;
+            this.cell = cell;
+        }
     }
 
     protected static class Offset {
