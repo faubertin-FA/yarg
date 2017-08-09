@@ -1,14 +1,10 @@
-package com.haulmont.yarg.util.db;
+package com.haulmont.yarg.util;
 
 import com.haulmont.yarg.exception.InitializationException;
 import org.apache.commons.dbcp.*;
 
 import javax.sql.DataSource;
 
-/**
- * @author degtyarjov
- * @version $Id$
- */
 public final class DatasourceCreator {
     private DatasourceCreator() {
     }

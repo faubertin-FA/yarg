@@ -13,11 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-/**
- * @author degtyarjov
- * @version $Id$
- */
 package com.haulmont.yarg.reporting;
 
 import com.google.common.base.Preconditions;
@@ -36,7 +31,7 @@ import com.haulmont.yarg.structure.ReportTemplate;
 import com.haulmont.yarg.util.converter.ObjectToStringConverter;
 import com.haulmont.yarg.util.converter.ObjectToStringConverterImpl;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

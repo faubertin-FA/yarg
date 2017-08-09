@@ -13,17 +13,11 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-/**
- * @author degtyarjov
- * @version $Id$
- */
 package com.haulmont.yarg.console;
 
 import com.haulmont.yarg.formatters.factory.DefaultFormatterFactory;
 import com.haulmont.yarg.formatters.impl.doc.connector.OfficeIntegration;
 import com.haulmont.yarg.loaders.factory.DefaultLoaderFactory;
-import com.haulmont.yarg.loaders.factory.PropertiesSqlLoaderFactory;
 import com.haulmont.yarg.loaders.impl.GroovyDataLoader;
 import com.haulmont.yarg.loaders.impl.JsonDataLoader;
 import com.haulmont.yarg.loaders.impl.SqlDataLoader;
@@ -42,7 +36,7 @@ import com.haulmont.yarg.util.properties.DefaultPropertiesLoader;
 import com.haulmont.yarg.util.properties.PropertiesLoader;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;

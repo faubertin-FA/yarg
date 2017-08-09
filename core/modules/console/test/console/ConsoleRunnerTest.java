@@ -13,12 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-/**
- *
- * @author degtyarjov
- * @version $Id$
- */
 package console;
 
 import com.haulmont.yarg.console.ConsoleRunner;
@@ -29,12 +23,11 @@ public class ConsoleRunnerTest {
     public void testConsoleReport() throws Exception {
         ConsoleRunner.doExitWhenFinished = false;
         ConsoleRunner.main(new String[]{
-                "-" + ConsoleRunner.REPORT_PATH, "./modules/core/test/console/console.xml",
+                "-" + ConsoleRunner.REPORT_PATH, "./modules/console/test/console/console.xml",
                 "-" + ConsoleRunner.OUTPUT_PATH, "./result/console/console.xls",
                 "-Pparam2=12/12/12 12:12",
                 "-Pparam3=10",
                 "-Pparam4=[{\"col1\":\"json1\",\"col2\":\"json2\"},{\"col1\":\"json3\",\"col2\":\"json4\"}]"
         });
-
     }
 }

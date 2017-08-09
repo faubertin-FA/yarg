@@ -13,11 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-/**
- * @author degtyarjov
- * @version $Id$
- */
 package com.haulmont.yarg.loaders.impl;
 
 import com.haulmont.yarg.loaders.ReportDataLoader;
@@ -79,4 +74,3 @@ public abstract class AbstractDataLoader implements ReportDataLoader {
     }
 
 }
-
