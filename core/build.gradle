@@ -30,6 +30,17 @@ allprojects {
     }
 }
 
+buildscript {
+    repositories {
+        maven { url "https://nexus.financeactive.com/repository/maven-public/" }
+        mavenLocal()
+    }
+    dependencies {
+        //Release plugin
+        classpath 'net.researchgate:gradle-release:2.5.0'
+    }
+}
+
 // Release
 apply plugin: 'net.researchgate.release'
 release {
@@ -42,17 +53,6 @@ release {
         pushToCurrentBranch = false
     }
 }
-
-
-buildscript {
-    repositories {
-        maven { url "https://nexus.financeactive.com/repository/maven-public/" }
-        mavenLocal()
-    }
-    dependencies {
-        //Release plugin
-        classpath 'net.researchgate:gradle-release:2.5.0'
-    }
 
 def api = project(':yarg-api')
 def core = project(':yarg')
@@ -69,6 +69,13 @@ configure([api, core, console]) {
             java { srcDir 'test' }
             resources { srcDir 'test' }
         }
+    }
+
+    // Deploy
+    apply plugin: 'maven'
+
+    configurations {
+        deployerJars
     }
 
     dependencies {
