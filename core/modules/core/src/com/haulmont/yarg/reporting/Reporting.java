@@ -78,18 +78,18 @@ public class Reporting implements ReportingAPI {
 
     @Override
     public ReportOutputDocument runReport(RunParams runParams, OutputStream outputStream) {
-        return runReport(runParams.report, runParams.reportTemplate, runParams.params, outputStream, runParams.acceptUnknownBand);
+        return runReport(runParams.report, runParams.reportTemplate, runParams.outputType, runParams.params, outputStream, runParams.acceptUnknownBand);
     }
 
     @Override
     public ReportOutputDocument runReport(RunParams runParams) {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
-        ReportOutputDocument reportOutputDocument = runReport(runParams.report, runParams.reportTemplate, runParams.params, result, runParams.acceptUnknownBand);
+        ReportOutputDocument reportOutputDocument = runReport(runParams.report, runParams.reportTemplate, runParams.outputType, runParams.params, result, runParams.acceptUnknownBand);
         reportOutputDocument.setContent(result.toByteArray());
         return reportOutputDocument;
     }
 
-    protected ReportOutputDocument runReport(Report report, ReportTemplate reportTemplate, Map<String, Object> params, OutputStream outputStream, boolean acceptUnknownBand) {
+    protected ReportOutputDocument runReport(Report report, ReportTemplate reportTemplate, ReportOutputType outputType, Map<String, Object> params, OutputStream outputStream, boolean acceptUnknownBand) {
         try {
             Preconditions.checkNotNull(report, "\"report\" parameter can not be null");
             Preconditions.checkNotNull(reportTemplate, "\"reportTemplate\" can not be null");
@@ -99,13 +99,14 @@ public class Reporting implements ReportingAPI {
             Map<String, Object> handledParams = handleParameters(report, params);
             logReport("Started report [%s] with parameters [%s]", report, handledParams);
 
+            ReportOutputType finalOutputType = (outputType != null) ? outputType : reportTemplate.getOutputType();
             BandData rootBand = loadBandData(report, handledParams);
-            generateReport(report, reportTemplate, outputStream, handledParams, rootBand, acceptUnknownBand);
+            generateReport(report, reportTemplate, finalOutputType, outputStream, handledParams, rootBand, acceptUnknownBand);
 
             logReport("Finished report [%s] with parameters [%s]", report, handledParams);
 
-            String outputName = resolveOutputFileName(report, reportTemplate, rootBand);
-            return createReportOutputDocument(report, reportTemplate, outputName, rootBand);
+            String outputName = resolveOutputFileName(report, reportTemplate, outputType, rootBand);
+            return createReportOutputDocument(report, finalOutputType, outputName, rootBand);
         } catch (ReportingException e) {
             logReport("An error occurred while running report [%s] with parameters [%s].", report, params);
             logException(e);
@@ -117,7 +118,7 @@ public class Reporting implements ReportingAPI {
         }
     }
 
-    protected void generateReport(Report report, ReportTemplate reportTemplate, OutputStream outputStream, Map<String, Object> handledParams, BandData rootBand, boolean acceptUnknownBand) {
+    protected void generateReport(Report report, ReportTemplate reportTemplate, ReportOutputType outputType, OutputStream outputStream, Map<String, Object> handledParams, BandData rootBand, boolean acceptUnknownBand) {
         String extension = StringUtils.substringAfterLast(reportTemplate.getDocumentName(), ".");
         if (reportTemplate.isCustom()) {
             try {
@@ -127,7 +128,7 @@ public class Reporting implements ReportingAPI {
                 throw new ReportingException(format("An error occurred while processing custom template [%s].", reportTemplate.getDocumentName()), e);
             }
         } else {
-            FormatterFactoryInput factoryInput = new FormatterFactoryInput(extension, rootBand, reportTemplate, outputStream, acceptUnknownBand);
+            FormatterFactoryInput factoryInput = new FormatterFactoryInput(extension, rootBand, reportTemplate, outputType, outputStream, acceptUnknownBand);
             ReportFormatter formatter = formatterFactory.createFormatter(factoryInput);
             formatter.renderDocument();
         }
@@ -181,11 +182,11 @@ public class Reporting implements ReportingAPI {
         logger.info("Trace: ", e);
     }
 
-    protected ReportOutputDocument createReportOutputDocument(Report report, ReportTemplate reportTemplate, String outputName, BandData rootBand) {
-        return new ReportOutputDocumentImpl(report, null, outputName, reportTemplate.getOutputType());
+    protected ReportOutputDocument createReportOutputDocument(Report report, ReportOutputType outputType, String outputName, BandData rootBand) {
+        return new ReportOutputDocumentImpl(report, null, outputName, outputType);
     }
 
-    protected String resolveOutputFileName(Report report, ReportTemplate reportTemplate, BandData rootBand) {
+    protected String resolveOutputFileName(Report report, ReportTemplate reportTemplate, ReportOutputType outputType, BandData rootBand) {
         String outputNamePattern = reportTemplate.getOutputNamePattern();
         String outputName = reportTemplate.getDocumentName();
         Pattern pattern = Pattern.compile("\\$\\{([A-z0-9_]+)\\.([A-z0-9_]+)\\}");
@@ -221,7 +222,8 @@ public class Reporting implements ReportingAPI {
         }
 
         if (ReportOutputType.custom != reportTemplate.getOutputType()) {
-            outputName = format("%s.%s", StringUtils.substringBeforeLast(outputName, "."), reportTemplate.getOutputType().getId());
+            ReportOutputType finalOutputType = (outputType != null ) ? outputType : reportTemplate.getOutputType();
+            outputName = format("%s.%s", StringUtils.substringBeforeLast(outputName, "."), finalOutputType.getId());
         }
 
         return outputName;

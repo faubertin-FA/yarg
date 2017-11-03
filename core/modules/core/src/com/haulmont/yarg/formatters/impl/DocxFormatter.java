@@ -17,12 +17,9 @@ package com.haulmont.yarg.formatters.impl;
 
 
 import com.haulmont.yarg.formatters.factory.FormatterFactoryInput;
-import com.haulmont.yarg.formatters.impl.docx.DocumentWrapper;
-import com.haulmont.yarg.formatters.impl.docx.TableManager;
-import com.haulmont.yarg.formatters.impl.docx.TextWrapper;
-import com.haulmont.yarg.formatters.impl.docx.UrlVisitor;
+import com.haulmont.yarg.formatters.impl.docx.*;
 import com.haulmont.yarg.formatters.impl.inline.ContentInliner;
-import com.haulmont.yarg.formatters.impl.xls.PdfConverter;
+import com.haulmont.yarg.formatters.impl.xls.DocumentConverter;
 import com.haulmont.yarg.structure.BandData;
 import com.haulmont.yarg.structure.ReportFieldFormat;
 import com.haulmont.yarg.structure.ReportOutputType;
@@ -64,7 +61,8 @@ public class DocxFormatter extends AbstractFormatter {
 
     protected WordprocessingMLPackage wordprocessingMLPackage;
     protected DocumentWrapper documentWrapper;
-    protected PdfConverter pdfConverter;
+    protected DocumentConverter documentConverter;
+    protected HtmlImportProcessor htmlImportProcessor;
 
     public DocxFormatter(FormatterFactoryInput formatterFactoryInput) {
         super(formatterFactoryInput);
@@ -72,8 +70,12 @@ public class DocxFormatter extends AbstractFormatter {
         supportedOutputTypes.add(ReportOutputType.pdf);
     }
 
-    public void setPdfConverter(PdfConverter pdfConverter) {
-        this.pdfConverter = pdfConverter;
+    public void setDocumentConverter(DocumentConverter documentConverter) {
+        this.documentConverter = documentConverter;
+    }
+
+    public void setHtmlImportProcessor(HtmlImportProcessor htmlImportProcessor) {
+        this.htmlImportProcessor = htmlImportProcessor;
     }
 
     @Override
@@ -128,28 +130,36 @@ public class DocxFormatter extends AbstractFormatter {
 
     protected void saveAndClose() {
         try {
-            if (ReportOutputType.docx.equals(reportTemplate.getOutputType())) {
+            if (ReportOutputType.docx.equals(outputType)) {
                 convertAltChunks();
                 writeToOutputStream(wordprocessingMLPackage, outputStream);
                 outputStream.flush();
-            } else if (ReportOutputType.pdf.equals(reportTemplate.getOutputType())) {
+            } else if (ReportOutputType.pdf.equals(outputType)) {
                 convertAltChunks();
-                if (pdfConverter != null) {
+                if (documentConverter != null) {
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     writeToOutputStream(wordprocessingMLPackage, bos);
-                    pdfConverter.convertToPdf(PdfConverter.FileType.DOCUMENT, bos.toByteArray(), outputStream);
+                    documentConverter.convertToPdf(DocumentConverter.FileType.DOCUMENT, bos.toByteArray(), outputStream);
                     outputStream.flush();
                 } else {
                     Docx4J.toPDF(wordprocessingMLPackage, outputStream);
                     outputStream.flush();
                 }
-            } else if (ReportOutputType.html.equals(reportTemplate.getOutputType())) {
-                HTMLSettings htmlSettings = Docx4J.createHTMLSettings();
-                htmlSettings.setWmlPackage(wordprocessingMLPackage);
-                Docx4J.toHTML(htmlSettings, outputStream, Docx4J.FLAG_NONE);
-                outputStream.flush();
+            } else if (ReportOutputType.html.equals(outputType)) {
+                if (documentConverter != null) {
+                    convertAltChunks();
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    writeToOutputStream(wordprocessingMLPackage, bos);
+                    documentConverter.convertToHtml(DocumentConverter.FileType.DOCUMENT, bos.toByteArray(), outputStream);
+                    outputStream.flush();
+                } else {
+                    HTMLSettings htmlSettings = Docx4J.createHTMLSettings();
+                    htmlSettings.setWmlPackage(wordprocessingMLPackage);
+                    Docx4J.toHTML(htmlSettings, outputStream, Docx4J.FLAG_NONE);
+                    outputStream.flush();
+                }
             } else {
-                throw new UnsupportedOperationException(String.format("DocxFormatter could not output file with type [%s]", reportTemplate.getOutputType()));
+                throw new UnsupportedOperationException(String.format("DocxFormatter could not output file with type [%s]", outputType));
             }
         } catch (Docx4JException e) {
             throw wrapWithReportingException("An error occurred while saving result report", e);
@@ -212,6 +222,7 @@ public class DocxFormatter extends AbstractFormatter {
         saver.save(outputStream);
     }
 
+    @SuppressWarnings("unchecked")
     public void convertAltChunks() throws Docx4JException {
         JaxbXmlPartAltChunkHost mainDocumentPart = wordprocessingMLPackage.getMainDocumentPart();
         List<Object> contentList = ((ContentAccessor) mainDocumentPart).getContent();
@@ -221,30 +232,42 @@ public class DocxFormatter extends AbstractFormatter {
 
         for (AltChunkFinder.LocatedChunk locatedChunk : bf.getAltChunks()) {
             CTAltChunk altChunk = locatedChunk.getAltChunk();
-            AlternativeFormatInputPart afip
+            AlternativeFormatInputPart part
                     = (AlternativeFormatInputPart) mainDocumentPart.getRelationshipsPart().getPart(
                     altChunk.getId());
-            if (afip.getAltChunkType().equals(AltChunkType.Xhtml)) {
+            if (part.getAltChunkType().equals(AltChunkType.Xhtml)) {
                 try {
                     XHTMLImporter xHTMLImporter = new XHTMLImporterImpl(wordprocessingMLPackage);
-                    List results = xHTMLImporter.convert(toString(afip.getBuffer()), null);
-
-                    int index = locatedChunk.getIndex();
-                    locatedChunk.getContentList().remove(index);
-
+                    List results = xHTMLImporter.convert(
+                            htmlImportProcessor.processHtml(toString(part.getBuffer())), null);
+                    locatedChunk.getContentList().remove(locatedChunk.getIndex());
                     Object chunkParent = locatedChunk.getAltChunk().getParent();
-                    R parentRun = (R) chunkParent;//always should be R
-                    P parentParagraph = (P) parentRun.getParent();
+                    R run = (R) chunkParent;//always should be R
+                    P paragraph = (P) run.getParent();
 
-                    for (Object result : results) {
-                        if (result instanceof P) {
-                            P resultParagraph = (P) result;
-                            parentParagraph.getContent().addAll(resultParagraph.getContent());
+                    if (results.size() == 1 && results.get(0) instanceof P) {
+                        P resultP = (P)results.get(0);
+                        paragraph.getContent().addAll(resultP.getContent());
+                    } else {
+                        if (paragraph.getParent() instanceof ArrayListWml) {
+                            ArrayListWml parent = (ArrayListWml) paragraph.getParent();
+                            parent.addAll(parent.indexOf(paragraph), results);
+                            if (results.get(0) instanceof P) {
+                                P resultParagraph = (P) results.get(0);
+                                resultParagraph.setPPr(paragraph.getPPr());
+                            }
+                            parent.remove(paragraph);
+                        } else {
+                            for (Object result : results) {
+                                if (result instanceof P) {
+                                    P resultParagraph = (P) result;
+                                    paragraph.getContent().addAll(resultParagraph.getContent());
+                                }
+                            }
                         }
                     }
                 } catch (Exception e) {
-                    log.error("An error occurred while converting HTML parts of DOCX document for PDF render");
-                    log.error(e.getMessage(), e);
+                    log.error("An error occurred while converting HTML parts of DOCX document:", e);
                 }
             }
         }

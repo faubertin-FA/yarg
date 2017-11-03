@@ -1,7 +1,12 @@
 package com.haulmont.yarg.util;
 
 import com.haulmont.yarg.exception.InitializationException;
-import org.apache.commons.dbcp.*;
+import org.apache.commons.dbcp.AbandonedConfig;
+import org.apache.commons.dbcp.AbandonedObjectPool;
+import org.apache.commons.dbcp.ConnectionFactory;
+import org.apache.commons.dbcp.DriverManagerConnectionFactory;
+import org.apache.commons.dbcp.PoolableConnectionFactory;
+import org.apache.commons.dbcp.PoolingDataSource;
 
 import javax.sql.DataSource;
 
@@ -36,10 +41,7 @@ public final class DatasourceCreator {
                             connectionFactory, connectionPool, null, null, false, true);
 
             connectionPool.setFactory(poolableConnectionFactory);
-            PoolingDataSource dataSource =
-                    new PoolingDataSource(connectionPool);
-
-            return dataSource;
+            return new PoolingDataSource(connectionPool);
         } catch (ClassNotFoundException e) {
             throw new InitializationException("An error occurred during creation of new datasource object", e);
         }

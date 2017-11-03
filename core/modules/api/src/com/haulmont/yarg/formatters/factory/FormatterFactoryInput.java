@@ -16,6 +16,7 @@
 package com.haulmont.yarg.formatters.factory;
 
 import com.haulmont.yarg.structure.BandData;
+import com.haulmont.yarg.structure.ReportOutputType;
 import com.haulmont.yarg.structure.ReportTemplate;
 
 import java.io.OutputStream;
@@ -32,6 +33,8 @@ public class FormatterFactoryInput {
     protected final OutputStream outputStream;
     protected final boolean acceptUnknownBand;
 
+    protected ReportOutputType outputType = null;
+
     public FormatterFactoryInput(String templateExtension, BandData rootBand, ReportTemplate reportTemplate, OutputStream outputStream, boolean acceptUnknownBand) {
         if (templateExtension == null) {
             throw new NullPointerException("templateExtension can not be null");
@@ -46,6 +49,11 @@ public class FormatterFactoryInput {
         this.reportTemplate = reportTemplate;
         this.outputStream = outputStream;
         this.acceptUnknownBand = acceptUnknownBand;
+    }
+
+    public FormatterFactoryInput(String templateExtension, BandData rootBand, ReportTemplate reportTemplate, ReportOutputType outputType, OutputStream outputStream, boolean acceptUnknownBand) {
+        this(templateExtension, rootBand, reportTemplate, outputStream, acceptUnknownBand);
+        this.outputType = outputType;
     }
 
     public String getTemplateExtension() {
@@ -66,5 +74,9 @@ public class FormatterFactoryInput {
 
     public boolean isAcceptUnknownBand() {
         return acceptUnknownBand;
+    }
+
+    public ReportOutputType getOutputType() {
+        return outputType;
     }
 }

@@ -24,7 +24,7 @@ import com.haulmont.yarg.formatters.factory.FormatterFactoryInput;
 import com.haulmont.yarg.formatters.impl.xls.Area;
 import com.haulmont.yarg.formatters.impl.xls.AreaDependencyManager;
 import com.haulmont.yarg.formatters.impl.xls.Cell;
-import com.haulmont.yarg.formatters.impl.xls.PdfConverter;
+import com.haulmont.yarg.formatters.impl.xls.DocumentConverter;
 import com.haulmont.yarg.formatters.impl.xls.caches.XlsFontCache;
 import com.haulmont.yarg.formatters.impl.xls.caches.XlsStyleCache;
 import com.haulmont.yarg.formatters.impl.xls.caches.XslStyleHelper;
@@ -114,7 +114,7 @@ public class XLSFormatter extends AbstractFormatter {
     protected Map<HSSFSheet, HSSFPatriarch> drawingPatriarchsMap = new HashMap<HSSFSheet, HSSFPatriarch>();
     protected List<XlsHint> hints = new ArrayList<XlsHint>();
 
-    protected PdfConverter pdfConverter;
+    protected DocumentConverter documentConverter;
 
     protected BiMap<BandData, Range> bandsToResultRanges = HashBiMap.create();
 
@@ -133,8 +133,8 @@ public class XLSFormatter extends AbstractFormatter {
         acceptUnknownBand = formatterFactoryInput.isAcceptUnknownBand();
     }
 
-    public void setPdfConverter(PdfConverter pdfConverter) {
-        this.pdfConverter = pdfConverter;
+    public void setDocumentConverter(DocumentConverter documentConverter) {
+        this.documentConverter = documentConverter;
     }
 
     @Override
@@ -197,8 +197,6 @@ public class XLSFormatter extends AbstractFormatter {
     }
 
     protected void outputDocument() {
-        ReportOutputType outputType = reportTemplate.getOutputType();
-
         if (ReportOutputType.xls.equals(outputType)) {
             try {
                 resultWorkbook.write(outputStream);
@@ -208,11 +206,11 @@ public class XLSFormatter extends AbstractFormatter {
                 IOUtils.closeQuietly(outputStream);
             }
         } else if (ReportOutputType.pdf.equals(outputType)) {
-            if (pdfConverter != null) {
+            if (documentConverter != null) {
                 try {
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
                     resultWorkbook.write(stream);
-                    pdfConverter.convertToPdf(PdfConverter.FileType.SPREADSHEET, stream.toByteArray(), outputStream);
+                    documentConverter.convertToPdf(DocumentConverter.FileType.SPREADSHEET, stream.toByteArray(), outputStream);
                 } catch (IOException e) {
                     throw wrapWithReportingException("An error occurred while converting xls to pdf.", e);
                 } finally {
@@ -672,7 +670,7 @@ public class XLSFormatter extends AbstractFormatter {
             parameterName = parameterName.substring(parameterName.indexOf(parentBandName) + parentBandName.length() + 1);
         String fullParameterName = bandData.getName() + "." + parameterName;
 
-        if (parentBandName != null && !bandData.getName().equals(parentBandName) && bandData.getParentBand() != null) {
+        if (parentBandName != null && !bandData.getName().equalsIgnoreCase(parentBandName) && bandData.getParentBand() != null) {
             updateValueCell(rootBand, bandData.getParentBand(), templateCellValue, resultCell, patriarch);
             return;
         }
